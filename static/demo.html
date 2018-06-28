@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="renderer" content="webkit" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="video-js.min.css">
+  <title>Document</title>
+</head>
+
+<body>
+  <input type="button" title="开启摄像头" value="开启摄像头" onclick="getMedia();" />
+  <br />
+  <video id="video" height="120px" autoplay></video>
+  <hr />
+  <input type="button" title="拍照" value="拍照" onclick="getPhoto();" />
+  <br />
+  <canvas id="canvas1" height="120px"></canvas>
+  <br />
+  <canvas id="canvas2" height="120px"></canvas>
+
+  <script type="text/javascript" src="video.min.js"></script>
+  <script type="text/javascript" src="videojs-flash.min.js"></script>
+  <script type="text/javascript" src="videojs-contrib-hls.min.js"></script>
+  <script type="text/javascript">
+    var $video = document.querySelector('video');
+    var audio, audioType;
+
+    var $canvas1 = document.getElementById('canvas1');
+    var context1 = canvas1.getContext('2d');
+
+    var $canvas2 = document.getElementById('canvas2');
+    var context2 = canvas2.getContext('2d');
+
+    window.URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
+
+    var promisifiedOldGUM = function (constraints) {
+      // First get ahold of getUserMedia, if present
+      var getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia);
+      // Some browsers just don't implement it - return a rejected promise with an error
+      // to keep a consistent interface
+      if (!getUserMedia) {
+        return Promise.reject(new Error('getUserMedia is not implemented in this browser'));
+      }
+      // Otherwise, wrap the call to the old navigator.getUserMedia with a Promise
+      return new Promise(function (resolve, reject) {
+        getUserMedia.call(navigator, constraints, resolve, reject);
+      });
+    }
+    // Older browsers might not implement mediaDevices at all, so we set an empty object first
+    if (navigator.mediaDevices === undefined) {
+      navigator.mediaDevices = {};
+    }
+    if (navigator.mediaDevices.getUserMedia === undefined) {
+      navigator.mediaDevices.getUserMedia = promisifiedOldGUM;
+    }
+    var front = false
+    var constraints = {
+      audio: true,
+      video: {
+        width: 1280,
+        height: 720,
+        facingMode: (front ? "user" : "environment") // 前置或者后置
+      }
+    };
+
+    function getMedia() {
+      navigator.mediaDevices.getUserMedia(constraints)
+        .then(function (stream) {
+          var SRC_OBJECT = 'srcObject' in $video ? "srcObject" :
+                 'mozSrcObject' in $video ? "mozSrcObject" :
+                 'webkitSrcObject' in $video ? "webkitSrcObject" : null
+          if (SRC_OBJECT) {
+            $video[SRC_OBJECT] = stream
+          } else {
+            $video.src = window.URL && window.URL.createObjectURL(stream) || stream;
+          }
+          $video.onloadedmetadata = function (e) {
+            $video.play();
+          };
+          postVideo(stream.clone())
+        })
+        .catch(function (err) {
+          console.log(err);
+          alert(err.message)
+        });
+    }
+
+    // function convertBase64UrlToBlob(urlData, type) {
+    //   var bytes = window.atob(urlData.split(',')[1]); //去掉url的头，并转换为byte
+    //   //处理异常,将ascii码小于0的转换为大于0
+    //   var ab = new ArrayBuffer(bytes.length);
+    //   var ia = new Uint8Array(ab);
+    //   for (var i = 0; i < bytes.length; i++) {
+    //     ia[i] = bytes.charCodeAt(i);
+    //   }
+    //   return new Blob([ab], {
+    //     type: 'image/' + type
+    //   });
+    // }
+
+    // vedio播放时触发，绘制vedio帧图像到canvas
+    $video.addEventListener('play', function () {
+      window.setInterval(function () {
+        context2.drawImage($video, 0, 0, 90, 120);
+        // var dataURL = $canvas2.toDataURL("image/png", 1.0);
+        // var file = convertBase64UrlToBlob(dataURL, "png");
+
+        // var formData = new FormData()
+        // formData.append('stream', file)
+        // fetch('/stream', {
+        //   method: 'POST',
+        //   body: formData
+        // })
+      }, 60);
+    }, false);
+
+    //拍照
+    function getPhoto() {
+      context1.drawImage($video, 0, 0, 90, 120); //将video对象内指定的区域捕捉绘制到画布上指定的区域，实现拍照。
+    }
+
+    function postVideo(stream) {
+      var mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = function (e) {
+        try {
+          var file = new File([e.data], Date.now(), { type: e.data.type })
+          var formData = new FormData()
+          formData.append('name', Date.now())
+          formData.append('stream', file)
+          fetch('/stream', {
+            method: 'POST',
+            body: formData
+          })
+        } catch(err) {
+          alert(err)
+        }
+      }
+      mediaRecorder.onstop = function (e) {
+      }
+
+      function record() {
+        mediaRecorder.stop();
+        mediaRecorder.start();
+      }
+      mediaRecorder.start();
+      setInterval(record, 1000)
+    }
+  </script>
+</body>
+
+</html>

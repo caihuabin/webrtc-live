@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="renderer" content="webkit" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>chat</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    .csstransitions .vedioCollectionList .link:hover:after {
+      height: 500px;
+      top: -100%;
+      opacity: 0;
+    }
+
+    .csstransitions .vedioCollectionList .link:after {
+      content: "";
+      position: absolute;
+      height: 0;
+      width: 500px;
+      -webkit-transform: rotate(45deg);
+      transform: rotate(45deg);
+      top: 100%;
+      left: 0;
+      opacity: .5;
+      -webkit-transform-origin: 0 0;
+      transform-origin: 0 0;
+      background-color: #fff;
+      transition: .5s all ease;
+    }
+  </style>
+</head>
+
+<body>
+  <video id="local-video" height="120" autoplay style="position: fixed; right: 0; top: 0;"></video>
+  <video id="remote-video" height="100%" width="100%" autoplay></video>
+  <script type="text/javascript" src="index.js"></script>
+</body>
+
+</html>

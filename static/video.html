@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="renderer" content="webkit" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="video-js.min.css">
+  <title>Document</title>
+</head>
+
+<body>
+  <video id=example-video width=600 height=300 class="video-js vjs-default-skin" controls>
+    <source src="video-dist2/video.m3u8" type="application/x-mpegURL">
+  </video>
+  <video id="video" width="640" height="480" autoplay></video>
+  <script type="text/javascript" src="video.min.js"></script>
+  <script type="text/javascript" src="videojs-flash.min.js"></script>
+  <script type="text/javascript" src="videojs-contrib-hls.min.js"></script>
+  <script type="text/javascript">
+    var options = {
+      hls: {
+        withCredentials: true
+      }
+    }
+    var player = videojs(document.getElementById('example-video'), {
+      techOrder: ["html5", "flash"],
+      flash: options,
+      html5: options,
+    })
+    // player.src({ type: "application/x-mpegURL", src: 'http://localhost:3000/video-dist2/video.m3u8' })
+    player.play()
+  </script>
+</body>
